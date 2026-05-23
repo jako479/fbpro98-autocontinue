@@ -7,6 +7,7 @@ DelayBeforeContinue can be tuned while the watcher is running.
 from __future__ import annotations
 
 import ctypes
+import logging
 import sys
 import time
 from pathlib import Path
@@ -14,6 +15,8 @@ from pathlib import Path
 import pyautogui
 
 from fbpro98_autocontinue.config import Config, ConfigError, config_signature, get_runtime_path, load_config
+
+logger = logging.getLogger(__name__)
 
 CONTINUE_BUTTON_IMAGE = get_runtime_path("continue_button.png")
 
@@ -37,8 +40,8 @@ def auto_continue(*, config_path: Path | None = None) -> None:
     last_signature = config_signature(config_path)
     config = load_config(config_path)
 
-    print("AutoContinue is RUNNING. Press CTRL-C to exit.")
-    print("(Move mouse to corner of screen to invoke fail-safe.)\r\n")
+    logger.info("AutoContinue is RUNNING. Press CTRL-C to exit.")
+    logger.info("(Move mouse to corner of screen to invoke fail-safe.)")
     _log_config_changes(None, config)
     width, height = _get_screen_size()
 
@@ -49,7 +52,7 @@ def auto_continue(*, config_path: Path | None = None) -> None:
             try:
                 new_config = load_config(config_path)
             except ConfigError as error:
-                print(f"Config reload failed; keeping previous settings. {error}")
+                logger.warning("Config reload failed; keeping previous settings. %s", error)
             else:
                 _log_config_changes(config, new_config)
                 config = new_config
@@ -99,6 +102,6 @@ def _find_continue_button(top: int, left: int, width: int, height: int):
 
 def _log_config_changes(prev: Config | None, current: Config) -> None:
     if prev is None or prev.mouse_move_duration != current.mouse_move_duration:
-        print(f"MouseMoveDuration set to {current.mouse_move_duration}")
+        logger.info("MouseMoveDuration set to %s", current.mouse_move_duration)
     if prev is None or prev.delay_before_continue != current.delay_before_continue:
-        print(f"DelayBeforeContinue set to {current.delay_before_continue}")
+        logger.info("DelayBeforeContinue set to %s", current.delay_before_continue)

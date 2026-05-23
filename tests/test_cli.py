@@ -134,9 +134,10 @@ def test_parse_args_config_flag() -> None:
 def test_main_errors_when_no_config_found(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     monkeypatch.setattr(config, "CONFIG_CANDIDATES", [tmp_path / "auto-continue.ini"])
-    exit_code = main([])
+    with caplog.at_level("ERROR"):
+        exit_code = main([])
     assert exit_code == 1
-    assert "error" in capsys.readouterr().err.lower()
+    assert any(r.levelname == "ERROR" for r in caplog.records)

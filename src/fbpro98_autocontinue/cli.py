@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
-import sys
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 
 from fbpro98_autocontinue.config import ConfigError
 from fbpro98_autocontinue.main import auto_continue, shutdown
+
+logger = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -41,10 +43,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
     try:
         auto_continue(config_path=args.config)
     except ConfigError as error:
-        print(f"error: {error}", file=sys.stderr)
+        logger.error(str(error))
         return 1
     except KeyboardInterrupt:
         shutdown()
